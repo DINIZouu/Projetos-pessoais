@@ -6,5 +6,5 @@ Repository for my personal programming projects. Here you'll find code developed
 
 #projetos
 -[Projeto acadêmico de Banco de Dados](./projetoFinal.sql)
--[Atividade acadêmica de Banco de Dados](./AF3-procedure.sql)
+-[Atividade acadêmica de Banco de Dados](./AF3procedure.sql)
 -[Projeto final em linguagem C](./trabalhoFinalC.c)
