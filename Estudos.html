@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joias&joias</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: black; }
+    </style>
+</head>
+<body>
+    <script type="module">
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js';
+        import { gsap } from 'https://cdn.jsdelivr.net/npm/gsap@3.12.2/index.js';
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const light = new THREE.PointLight(0xffffff, 2);
+        light.position.set(5, 5, 5);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040, 1));
+
+        function createHeart3D() {
+            const heartShape = new THREE.Shape();
+            
+            for (let t = 0; t <= Math.PI * 2; t += 0.1) {
+                const x = 16 * Math.pow(Math.sin(t), 3);
+                const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+                heartShape.lineTo(x / 4, y / 4);
+            }
+
+            const extrudeSettings = { depth: 2, bevelEnabled: true, bevelSize: 0.3, bevelSegments: 10 };
+            const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+            const material = new THREE.MeshStandardMaterial({ color: 0xff0000, roughness: 0.3, metalness: 0.6 });
+
+            geometry.setAttribute('originalPosition', new THREE.Float32BufferAttribute(geometry.attributes.position.array.slice(), 3));
+
+            return new THREE.Mesh(geometry, material);
+        }
+
+        const heart = createHeart3D();
+        scene.add(heart);
+        camera.position.z = 10;
+
+        function distortHeart(event) {
+            const positions = heart.geometry.attributes.position.array;
+            const originalPositions = heart.geometry.attributes.originalPosition.array;
+
+            for (let i = 0; i < positions.length; i += 3) {
+                positions[i] = originalPositions[i] + (Math.random() - 0.5) * 1.5; // Intensidade da bagunça
+                positions[i + 1] = originalPositions[i + 1] + (Math.random() - 0.5) * 1.5;
+                positions[i + 2] = originalPositions[i + 2] + (Math.random() - 0.5) * 1.5;
+            }
+
+            heart.geometry.attributes.position.needsUpdate = true;
+
+            gsap.to(positions, {
+                duration: 2.5,
+                onUpdate: () => {
+                    for (let i = 0; i < positions.length; i++) {
+                        positions[i] = THREE.MathUtils.lerp(positions[i], originalPositions[i], 0.1);
+                    }
+                    heart.geometry.attributes.position.needsUpdate = true;
+                }
+            });
+        }
+
+        window.addEventListener('mousemove', distortHeart);
+        window.addEventListener('touchmove', distortHeart);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            heart.rotation.y += 0.005;
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
